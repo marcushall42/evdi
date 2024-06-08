@@ -17,7 +17,8 @@
 #include <linux/version.h>
 #include <linux/mutex.h>
 #include <linux/device.h>
-#if KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE || defined(EL8)
+#include <linux/i2c.h>
+#if KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
 #include <drm/drm_drv.h>
 #include <drm/drm_fourcc.h>
 #include <drm/drm_ioctl.h>
@@ -25,7 +26,7 @@
 #else
 #include <drm/drmP.h>
 #endif
-#if KERNEL_VERSION(5, 15, 0) <= LINUX_VERSION_CODE || defined(EL9)
+#if KERNEL_VERSION(5, 15, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
 #include <drm/drm_framebuffer.h>
 #else
 #include <drm/drm_irq.h>
@@ -34,11 +35,8 @@
 #include <drm/drm_crtc_helper.h>
 #include <drm/drm_rect.h>
 #include <drm/drm_gem.h>
-#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE || defined(EL8)
-#include <linux/dma-resv.h>
-#else
-#include <linux/reservation.h>
-#endif
+#include <drm/drm_framebuffer.h>
+
 #include "evdi_debug.h"
 
 
@@ -71,13 +69,6 @@ struct evdi_gem_object {
 	bool vmap_is_iomem;
 #endif
 	struct sg_table *sg;
-#if KERNEL_VERSION(5, 4, 0) <= LINUX_VERSION_CODE || defined(EL8)
-	struct dma_resv *resv;
-	struct dma_resv _resv;
-#else
-	struct reservation_object *resv;
-	struct reservation_object _resv;
-#endif
 	bool allow_sw_cursor_rect_updates;
 };
 
@@ -98,7 +89,6 @@ int evdi_connector_init(struct drm_device *dev, struct drm_encoder *encoder);
 
 struct drm_encoder *evdi_encoder_init(struct drm_device *dev);
 
-void evdi_drm_device_unload(struct drm_device *dev);
 int evdi_driver_open(struct drm_device *drm_dev, struct drm_file *file);
 void evdi_driver_preclose(struct drm_device *dev, struct drm_file *file_priv);
 void evdi_driver_postclose(struct drm_device *dev, struct drm_file *file_priv);

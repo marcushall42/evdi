@@ -10,11 +10,11 @@
 #include "linux/thread_info.h"
 #include "linux/mm.h"
 #include <linux/version.h>
-#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
+#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
 #include <drm/drm_file.h>
 #include <drm/drm_vblank.h>
 #include <drm/drm_ioctl.h>
-#elif KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE || defined(EL8)
+#elif KERNEL_VERSION(5, 5, 0) <= LINUX_VERSION_CODE
 #else
 #include <drm/drmP.h>
 #endif
@@ -749,13 +749,16 @@ void evdi_painter_mode_changed_notify(struct evdi_device *evdi,
 	if (painter == NULL)
 		return;
 
+	painter_lock(painter);
 	fb = &painter->scanout_fb->base;
-	if (fb == NULL)
+	if (fb == NULL) {
+		painter_unlock(painter);
 		return;
+	}
 
 	bits_per_pixel = fb->format->cpp[0] * 8;
 	pixel_format = fb->format->format;
-
+	painter_unlock(painter);
 
 	evdi_log_pixel_format(pixel_format, buf, sizeof(buf));
 	EVDI_INFO("(card%d) Notifying mode changed: %dx%d@%d; bpp %d; %s",
@@ -1217,6 +1220,7 @@ void evdi_painter_cleanup(struct evdi_painter *painter)
 
 	painter->drm_device = NULL;
 	painter_unlock(painter);
+	kfree(painter);
 }
 
 void evdi_painter_set_scanout_buffer(struct evdi_painter *painter,

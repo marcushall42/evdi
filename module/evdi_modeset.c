@@ -12,10 +12,10 @@
  */
 
 #include <linux/version.h>
-#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL9)
+#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE || defined(EL8) || defined(EL9)
 #include <drm/drm_vblank.h>
 #include <drm/drm_damage_helper.h>
-#elif KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE || defined(EL8)
+#elif KERNEL_VERSION(5, 0, 0) <= LINUX_VERSION_CODE
 #include <drm/drm_damage_helper.h>
 #else
 #include <drm/drmP.h>
@@ -146,11 +146,11 @@ static int evdi_crtc_cursor_set(struct drm_crtc *crtc,
 	evdi_cursor_set(evdi->cursor,
 			eobj, width, height, hot_x, hot_y,
 			format, stride);
-#if KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE || defined(EL8)
+	#if KERNEL_VERSION(5, 9, 0) <= LINUX_VERSION_CODE || defined(EL8)
 	drm_gem_object_put(obj);
-#else
+	#else
 	drm_gem_object_put_unlocked(obj);
-#endif
+	#endif
 
 	/*
 	 * For now we don't care whether the application wanted the mouse set,
@@ -327,6 +327,7 @@ static void evdi_cursor_atomic_update(struct drm_plane *plane,
 {
 #if KERNEL_VERSION(5, 13, 0) <= LINUX_VERSION_CODE || defined(EL8)
 	struct drm_plane_state *old_state = drm_atomic_get_old_plane_state(atom_state, plane);
+
 #else
 #endif
 	if (plane && plane->state && plane->dev && plane->dev->dev_private) {

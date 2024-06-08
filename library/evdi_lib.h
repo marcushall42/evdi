@@ -6,14 +6,16 @@
 #define EVDI_LIB_H
 
 #include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #define LIBEVDI_VERSION_MAJOR 1
-#define LIBEVDI_VERSION_MINOR 12
-#define LIBEVDI_VERSION_PATCH 0
+#define LIBEVDI_VERSION_MINOR 14
+#define LIBEVDI_VERSION_PATCH 4
 
 struct evdi_lib_version {
 	int version_major;
@@ -102,10 +104,15 @@ struct evdi_logging {
 enum evdi_device_status evdi_check_device(int device);
 evdi_handle evdi_open(int device);
 int evdi_add_device(void);
+// deprecated, use evdi_open_attached_to_fixed
 evdi_handle evdi_open_attached_to(const char *sysfs_parent_device);
+evdi_handle evdi_open_attached_to_fixed(const char *sysfs_parent_device, size_t length);
 
 void evdi_close(evdi_handle handle);
 void evdi_connect(evdi_handle handle, const unsigned char *edid,
+		  const unsigned int edid_length,
+		  const uint32_t sku_area_limit);
+void evdi_connect2(evdi_handle handle, const unsigned char *edid,
 		  const unsigned int edid_length,
 		  const uint32_t pixel_area_limit,
 		  const uint32_t pixel_per_second_limit);

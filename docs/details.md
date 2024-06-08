@@ -62,7 +62,12 @@ library and module does not match then the device will not be opened.
 
 #### Request evdi nodes (since v1.9.0)
     #!c
+	// since 1.14.3
+	evdi_handle evdi_open_attached_to_fixed(char *sysfs_parent_device, size_t length);
+	// deprecated since 1.14.3
 	evdi_handle evdi_open_attached_to(char *sysfs_parent_device);
+!!! warning
+	Function evdi_open_attached_to is deprecated, please use evdi_open_attached_to_fixed
 
 This function attempts to add (if necessary) and open a DRM device node attached to given parent device.
 Linking with another sysfs device is sometimes useful if it is required to reflect such relationship in sysfs.
@@ -70,8 +75,11 @@ Linking with another sysfs device is sometimes useful if it is required to refle
 The function performs a compatibility check with an underlying drm device. If version of the
 library and module does not match, the device will not be opened.
 
-**Arguments**: `sysfs_parent_device` is a string with the following format: `usb:[busNum]-[portNum1].[portNum2].[portNum3]...`, which describes the
+**Arguments**:
+
+* `sysfs_parent_device` is a null terminated string with the following format: `usb:[busNum]-[portNum1].[portNum2].[portNum3]...`, which describes the
 device that evdi is linked to. Or `NULL` when evdi device node is not linked with any other device.
+* `length` string length excluding null character
 
 **Return value:** On success, a handle to the opened device to be used in following API calls. `EVDI_INVALID_HANDLE` otherwise.
 
@@ -89,8 +97,23 @@ Closes an opened EVDI handle.
 ### Connection
 #### Opening connections
 
-    #!c
 	void evdi_connect(evdi_handle handle,
+			  const unsigned char* edid,
+			  const unsigned edid_length,
+			  const uint32_t sku_area_limit);
+
+Creates a connection between the EVDI and Linux DRM subsystem, resulting in kernel mode driver processing a hot plug event.
+
+**Arguments**:
+
+* `handle` to an opened device
+* `edid` should be a pointer to a memory block with contents of an EDID of a monitor that will be exposed to kernel
+* `edid_length` is the length of the EDID block (typically 512 bytes, or more if extension blocks are present)
+* `sku_area_limit` is maximum pixel area (width x height) connected device can display. Does not limit the refresh rate on the connected device.
+
+
+    #!c
+	void evdi_connect2(evdi_handle handle,
 			  const unsigned char* edid,
 			  const unsigned edid_length,
 			  const uint32_t pixel_area_limit,
